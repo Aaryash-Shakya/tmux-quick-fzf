@@ -58,7 +58,7 @@ PREVIEW_ENABLED="${TMUX_QUICK_FZF_PREVIEW:-1}"
 if [[ -n "$TMUX_QUICK_FZF_OPTIONS" ]]; then
   FZF_TMUX_OPTS="$TMUX_QUICK_FZF_OPTIONS"
 elif version_ge "$tmux_version" "3.2"; then
-  FZF_TMUX_OPTS="-p -w 62% -h 38%"
+  FZF_TMUX_OPTS="-p -w 62% -h 50%"
 else
   FZF_TMUX_OPTS=""
 fi
