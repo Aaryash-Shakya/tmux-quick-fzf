@@ -10,4 +10,4 @@ target="${1%%$'\t'*}"
 
 [[ -z "$target" ]] && exit 0
 
-tmux capture-pane -ep -t "$target" 2>/dev/null
+tmux capture-pane -ep -t "$target" -S - 2>/dev/null | tail -n 30
