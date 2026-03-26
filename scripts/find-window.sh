@@ -90,7 +90,7 @@ fzf_opts+=(--no-sort)
 # Preview
 if [[ "$PREVIEW_ENABLED" = "1" ]]; then
   fzf_opts+=(--preview="$CURRENT_DIR/.preview {}")
-  fzf_opts+=(--preview-window=right:50%)
+  fzf_opts+=(--preview-window=right:50%:follow)
 fi
 
 # Progressive fzf features
