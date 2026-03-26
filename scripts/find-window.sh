@@ -89,9 +89,13 @@ fzf_opts+=(--delimiter=$'\t')
 fzf_opts+=(--with-nth=2..)
 fzf_opts+=(--print-query)
 fzf_opts+=(--expect=ctrl-w,ctrl-s)
-fzf_opts+=(--header="ctrl-w: new window | ctrl-s: new session | enter: switch")
+fzf_opts+=(--header="enter: switch | ctrl-w: new window | ctrl-s: new session | ctrl-t: theme | ?: help")
 fzf_opts+=(--reverse)
 fzf_opts+=(--no-sort)
+
+# Keybindings inside fzf
+fzf_opts+=(--bind="ctrl-t:execute-silent($CURRENT_DIR/cycle-theme.sh)+transform-header(echo \"enter: switch | ctrl-w: new window | ctrl-s: new session | ctrl-t: theme | ?: help  [theme: \$(tmux show-option -gqv @quick_fzf_theme)]\")")
+fzf_opts+=(--bind="?:preview($CURRENT_DIR/.help)+change-preview-label( Help )")
 
 # Theme
 if [[ -n "$fzf_colors" ]]; then

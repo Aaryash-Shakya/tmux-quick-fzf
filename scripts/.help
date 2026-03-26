@@ -1,0 +1,23 @@
+#!/usr/bin/env bash
+# Help text for tmux-quick-fzf
+
+CURRENT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+source "$CURRENT_DIR/themes.sh"
+
+current_theme=$(tmux show-option -gqv @quick_fzf_theme 2>/dev/null)
+current_theme="${current_theme:-mocha}"
+
+cat <<EOF
+tmux-quick-fzf
+
+Keybindings:
+  enter    Switch to selected window
+  ctrl-w   Create new window (named after query)
+  ctrl-s   Create new session (named after query)
+  ctrl-t   Cycle theme
+  ?        Show this help
+  esc      Back to preview
+
+Themes: $(get_theme_list | tr ' ' ', ')
+Current: $current_theme
+EOF
