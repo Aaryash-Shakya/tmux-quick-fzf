@@ -76,35 +76,11 @@ if [[ -z "$windows" ]]; then
   exit 0
 fi
 
-# --- Extract tmux theme colors for fzf ---
+# --- Resolve theme colors for fzf ---
 
-extract_color() {
-  local style="$1" attr="$2"
-  local raw
-  raw=$(tmux show-option -gv "$style" 2>/dev/null | grep -oP "${attr}=\\K[^,]+")
-  [[ -z "$raw" || "$raw" == "default" ]] && return
-  # Resolve tmux format strings like #{@thm_overlay_0}
-  if [[ "$raw" == *'#{'* ]]; then
-    raw=$(tmux display-message -p "$raw" 2>/dev/null)
-  fi
-  [[ -n "$raw" ]] && echo "$raw"
-}
-
-tmux_bg=$(extract_color "status-style" "bg")
-tmux_fg=$(extract_color "status-style" "fg")
-tmux_sel_bg=$(extract_color "mode-style" "bg")
-tmux_sel_fg=$(extract_color "mode-style" "fg")
-tmux_border=$(extract_color "pane-active-border-style" "fg")
-
-fzf_colors=""
-[[ -n "$tmux_bg" ]] && fzf_colors+="bg:${tmux_bg},preview-bg:${tmux_bg},"
-[[ -n "$tmux_fg" ]] && fzf_colors+="fg:${tmux_fg},header:${tmux_fg},info:${tmux_fg},"
-[[ -n "$tmux_sel_bg" ]] && fzf_colors+="bg+:${tmux_sel_bg},"
-[[ -n "$tmux_sel_fg" ]] && fzf_colors+="fg+:${tmux_sel_fg},hl+:${tmux_sel_fg},"
-[[ -n "$tmux_border" ]] && fzf_colors+="border:${tmux_border},preview-border:${tmux_border},"
-
-# Remove trailing comma
-fzf_colors="${fzf_colors%,}"
+source "$CURRENT_DIR/themes.sh"
+theme=$(tmux show-option -gqv @quick_fzf_theme)
+fzf_colors=$(get_theme_color_string "${theme:-mocha}")
 
 # --- Build fzf options ---
 
