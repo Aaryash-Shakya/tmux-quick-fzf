@@ -20,29 +20,19 @@ done
 # Remove trailing newline
 theme_list="${theme_list%$'\n'}"
 
-# Find fzf-tmux binary (same logic as find-window.sh)
-if command -v fzf-tmux &>/dev/null; then
-  FZF_TMUX_BIN="fzf-tmux"
-else
-  FZF_TMUX_BIN="$CURRENT_DIR/.fzf-tmux"
-fi
-
 # Get current theme colors for the picker itself
 fzf_colors=$(get_theme_color_string "$current")
 color_opt=()
 [[ -n "$fzf_colors" ]] && color_opt=(--color="$fzf_colors")
 
-# Launch theme picker
-selected=$(echo "$theme_list" | $FZF_TMUX_BIN -p -w 62% -h 50% -- \
+# Launch theme picker (runs inside the existing terminal/popup, not a new popup)
+selected=$(echo "$theme_list" | fzf \
   --header="enter: apply theme | esc: cancel" \
   --preview="$CURRENT_DIR/theme-preview.sh {1}" \
   --preview-window=right:50% \
   --reverse \
   --no-sort \
   --with-nth=1.. \
-  --input-border --input-label=" Search " \
-  --list-border --list-label=" Themes " \
-  --preview-border --preview-label=" Preview " \
   "${color_opt[@]}")
 
 # Extract just the theme name (strip the * marker)
