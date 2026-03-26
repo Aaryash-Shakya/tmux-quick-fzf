@@ -14,9 +14,9 @@ Keybindings:
   enter    Switch to selected window
   ctrl-w   Create new window (named after query)
   ctrl-s   Create new session (named after query)
-  ctrl-t   Cycle theme
+  ctrl-t   Open theme picker
   ?        Show this help
-  esc      Back to preview
+  esc      Cancel
 
 Themes: $(get_theme_list | tr ' ' ', ')
 Current: $current_theme
