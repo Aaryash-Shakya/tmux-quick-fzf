@@ -50,22 +50,39 @@ if [[ -n "$bg" && -n "$fg" ]]; then
   current=$(tmux show-option -gqv @quick_fzf_theme 2>/dev/null)
   current="${current:-mocha}"
 
-  echo -e "${BG}${BORDER}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${RST}"
-  echo -e "${BG}${HEADER}  Theme: ${theme}${RST}"
-  echo -e "${BG}${BORDER}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${RST}"
-  echo ""
-  echo -e "${BG}${PROMPT}  > ${FG}Search query here${RST}"
-  echo -e "${BG}${INFO}  4/12${RST}"
-  echo -e "${BG}${FG_SEL}${BG_SEL}  > main:1  zsh${RST}"
-  echo -e "${BG}${FG}    main:2  ${HL}nvim${RST}"
-  echo -e "${BG}${FG}    dev:1   node${RST}"
-  echo -e "${BG}${FG}    dev:2   ${HL}nvim${RST}"
-  echo ""
-  echo -e "${BG}${BORDER}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${RST}"
-  echo ""
+  # Get terminal width for the preview pane, fall back to 40
+  w=${FZF_PREVIEW_COLUMNS:-40}
+
+  # Print a full-width line: bg fills to edge via \e[K (erase to end of line)
+  # \e[K uses the current background color to fill
+  line() {
+    printf "${BG}${1}%-${w}s${RST}\n" ""
+  }
+  textline() {
+    printf "${BG}${1}%s\e[K${RST}\n" "$2"
+  }
+
+  # Fill entire preview with theme background using \e[K
+  textline "$BORDER" "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+  textline "$HEADER" "  Theme: ${theme}"
+  textline "$BORDER" "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+  printf "${BG}\e[K${RST}\n"
+  textline "$PROMPT" "  > ${BG}${FG}Search query here"
+  textline "$INFO" "  4/12"
+  printf "${BG_SEL}${FG_SEL}  > main:1  zsh\e[K${RST}\n"
+  textline "$FG" "    main:2  ${HL}nvim"
+  textline "$FG" "    dev:1   node"
+  textline "$FG" "    dev:2   ${HL}nvim"
+  printf "${BG}\e[K${RST}\n"
+  textline "$BORDER" "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+  printf "${BG}\e[K${RST}\n"
   if [[ "$theme" == "$current" ]]; then
-    echo -e "${GREEN}  ● Current theme${RST}"
+    textline "$GREEN" "  ● Current theme"
   else
-    echo -e "${INFO}  ○ Press enter to apply${RST}"
+    textline "$INFO" "  ○ Press enter to apply"
   fi
+  # Fill remaining lines with background
+  for _ in $(seq 1 20); do
+    printf "${BG}\e[K${RST}\n"
+  done
 fi
