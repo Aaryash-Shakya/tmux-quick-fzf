@@ -42,5 +42,5 @@ if [[ -n "$selected_theme" ]]; then
   tmux set-option -g @quick_fzf_theme "$selected_theme"
 fi
 
-# Re-launch window search
-"$CURRENT_DIR/find-window.sh"
+# Re-launch window search as a new popup (after this one closes)
+tmux run-shell -b "$CURRENT_DIR/find-window.sh"
