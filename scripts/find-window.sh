@@ -65,11 +65,40 @@ fi
 
 # --- Build window list ---
 
-# Internal format: session:index<TAB>display_columns
-# The display_columns include the user format + active window marker
-list_format="#{session_name}:#{window_index}"$'\t'"${WINDOW_FORMAT}#{?window_active, *,}"
+# Builds a tree-structured list grouped by session.
+# Each entry: session:index<TAB>display  (session headers have an empty first field)
+build_tree_list() {
+  local sessions
+  sessions=$(tmux list-sessions -F "#{session_name}" 2>/dev/null) || return
 
-windows=$(tmux list-windows -a -F "$list_format" 2>/dev/null)
+  while IFS= read -r session; do
+    # Session header: empty internal ID, session name as display
+    printf '\t%s\n' "$session"
+
+    local win_format
+    win_format="#{session_name}:#{window_index}"$'\t'"#{window_index}: #{window_name}#{?window_active, *,}"
+    local win_list
+    win_list=$(tmux list-windows -t "$session" -F "$win_format" 2>/dev/null) || continue
+
+    local -a lines
+    mapfile -t lines <<< "$win_list"
+    local total=${#lines[@]}
+    local count=0
+
+    for line in "${lines[@]}"; do
+      count=$((count + 1))
+      local id="${line%%$'\t'*}"
+      local display="${line#*$'\t'}"
+      if [[ $count -eq $total ]]; then
+        printf '%s\t  └── %s\n' "$id" "$display"
+      else
+        printf '%s\t  ├── %s\n' "$id" "$display"
+      fi
+    done
+  done <<< "$sessions"
+}
+
+windows=$(build_tree_list)
 
 if [[ -z "$windows" ]]; then
   tmux display-message "tmux-quick-fzf: no windows found"
@@ -167,6 +196,10 @@ case "$key" in
     if [[ -n "$selection" ]]; then
       # Extract session:index from the first tab-delimited field
       target="${selection%%$'\t'*}"
+      # Session header lines have an empty target — skip them
+      if [[ -z "$target" || "$target" != *:* ]]; then
+        exit 0
+      fi
       session="${target%%:*}"
       tmux switch-client -t "$session"
       tmux select-window -t "$target"
