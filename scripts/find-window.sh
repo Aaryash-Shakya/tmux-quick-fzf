@@ -66,15 +66,13 @@ fi
 # --- Build window list ---
 
 # Builds a tree-structured list grouped by session.
-# Each entry: session:index<TAB>display  (session headers have an empty first field)
+# Each entry: session:index<TAB>session branch_char index: name
+# Session name is embedded in every window line so it stays visible when filtering.
 build_tree_list() {
   local sessions
   sessions=$(tmux list-sessions -F "#{session_name}" 2>/dev/null) || return
 
   while IFS= read -r session; do
-    # Session header: empty internal ID, session name as display
-    printf '\t%s\n' "$session"
-
     local win_format
     win_format="#{session_name}:#{window_index}"$'\t'"#{window_index}: #{window_name}#{?window_active, *,}"
     local win_list
@@ -90,9 +88,9 @@ build_tree_list() {
       local id="${line%%$'\t'*}"
       local display="${line#*$'\t'}"
       if [[ $count -eq $total ]]; then
-        printf '%s\t  └── %s\n' "$id" "$display"
+        printf '%s\t%s └── %s\n' "$id" "$session" "$display"
       else
-        printf '%s\t  ├── %s\n' "$id" "$display"
+        printf '%s\t%s ├── %s\n' "$id" "$session" "$display"
       fi
     done
   done <<< "$sessions"
@@ -196,10 +194,6 @@ case "$key" in
     if [[ -n "$selection" ]]; then
       # Extract session:index from the first tab-delimited field
       target="${selection%%$'\t'*}"
-      # Session header lines have an empty target — skip them
-      if [[ -z "$target" || "$target" != *:* ]]; then
-        exit 0
-      fi
       session="${target%%:*}"
       tmux switch-client -t "$session"
       tmux select-window -t "$target"
