@@ -110,6 +110,45 @@ Example — show window name and current command:
 set-environment -g TMUX_QUICK_FZF_WINDOW_FORMAT "#S:#I: #W [#{pane_current_command}]"
 ```
 
+## Themes
+
+tmux-quick-fzf includes [Catppuccin](https://github.com/catppuccin/catppuccin) color themes for fzf.
+
+### Available Themes
+
+| Theme | Description |
+|---|---|
+| `mocha` | Dark, default theme |
+| `frappe` | Medium-dark |
+| `macchiato` | Medium-dark, warmer |
+| `latte` | Light |
+| `auto` | Reads colors dynamically from the current tmux theme |
+| `none` | Disables theming (uses default fzf colors) |
+
+### Setting a Default Theme
+
+Add to your `~/.tmux.conf`:
+
+```tmux
+set-environment -g TMUX_QUICK_FZF_THEME "frappe"
+```
+
+### Cycling Themes at Runtime
+
+Press `Alt+t` to cycle through all themes without reloading tmux.
+
+To change the cycle key:
+
+```tmux
+set-environment -g TMUX_QUICK_FZF_CYCLE_KEY "M-T"
+```
+
+### Setting a Theme Directly
+
+```tmux
+tmux set -g @quick_fzf_theme latte
+```
+
 ## License
 
 MIT

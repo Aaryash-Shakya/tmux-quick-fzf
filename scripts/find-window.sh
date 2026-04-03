@@ -65,16 +65,49 @@ fi
 
 # --- Build window list ---
 
-# Internal format: session:index<TAB>display_columns
-# The display_columns include the user format + active window marker
-list_format="#{session_name}:#{window_index}"$'\t'"${WINDOW_FORMAT}#{?window_active, *,}"
+# Builds a tree-structured list grouped by session.
+# Each entry: session:index<TAB>session branch_char index: name
+# Session name is embedded in every window line so it stays visible when filtering.
+build_tree_list() {
+  local sessions
+  sessions=$(tmux list-sessions -F "#{session_name}" 2>/dev/null) || return
 
-windows=$(tmux list-windows -a -F "$list_format" 2>/dev/null)
+  while IFS= read -r session; do
+    local win_format
+    win_format="#{session_name}:#{window_index}"$'\t'"#{window_index}: #{window_name}#{?window_active, *,}"
+    local win_list
+    win_list=$(tmux list-windows -t "$session" -F "$win_format" 2>/dev/null) || continue
+
+    local -a lines
+    mapfile -t lines <<< "$win_list"
+    local total=${#lines[@]}
+    local count=0
+
+    for line in "${lines[@]}"; do
+      count=$((count + 1))
+      local id="${line%%$'\t'*}"
+      local display="${line#*$'\t'}"
+      if [[ $count -eq $total ]]; then
+        printf '%s\t%s └── %s\n' "$id" "$session" "$display"
+      else
+        printf '%s\t%s ├── %s\n' "$id" "$session" "$display"
+      fi
+    done
+  done <<< "$sessions"
+}
+
+windows=$(build_tree_list)
 
 if [[ -z "$windows" ]]; then
   tmux display-message "tmux-quick-fzf: no windows found"
   exit 0
 fi
+
+# --- Resolve theme colors for fzf ---
+
+source "$CURRENT_DIR/themes.sh"
+theme=$(tmux show-option -gqv @quick_fzf_theme)
+fzf_colors=$(get_theme_color_string "${theme:-mocha}")
 
 # --- Build fzf options ---
 
@@ -83,14 +116,23 @@ fzf_opts+=(--delimiter=$'\t')
 fzf_opts+=(--with-nth=2..)
 fzf_opts+=(--print-query)
 fzf_opts+=(--expect=ctrl-w,ctrl-s)
-fzf_opts+=(--header="ctrl-w: new window | ctrl-s: new session | enter: switch")
+fzf_opts+=(--header="enter: switch | ctrl-w: new window | ctrl-s: new session | ctrl-t: theme | ?: help")
 fzf_opts+=(--reverse)
 fzf_opts+=(--no-sort)
+
+# Keybindings inside fzf
+fzf_opts+=(--bind="ctrl-t:become($CURRENT_DIR/theme-picker.sh)")
+fzf_opts+=(--bind="?:preview($CURRENT_DIR/.help)+change-preview-label( Help )")
+
+# Theme
+if [[ -n "$fzf_colors" ]]; then
+  fzf_opts+=(--color="$fzf_colors")
+fi
 
 # Preview
 if [[ "$PREVIEW_ENABLED" = "1" ]]; then
   fzf_opts+=(--preview="$CURRENT_DIR/.preview {}")
-  fzf_opts+=(--preview-window=right:50%)
+  fzf_opts+=(--preview-window=right:50%:follow)
 fi
 
 # Progressive fzf features
