@@ -122,17 +122,24 @@ fzf_opts+=(--no-sort)
 
 # Keybindings inside fzf
 fzf_opts+=(--bind="ctrl-t:become($CURRENT_DIR/theme-picker.sh)")
-fzf_opts+=(--bind="?:preview($CURRENT_DIR/.help)+change-preview-label( Help )")
 
 # Theme
 if [[ -n "$fzf_colors" ]]; then
   fzf_opts+=(--color="$fzf_colors")
 fi
 
+# Help toggle — uses a temp flag file to track open/closed state
+_help_flag=$(mktemp -u /tmp/tmux-quick-fzf-XXXXXX)
+
 # Preview
 if [[ "$PREVIEW_ENABLED" = "1" ]]; then
-  fzf_opts+=(--preview="$CURRENT_DIR/.preview {}")
+  fzf_opts+=(--preview="[ -f '$_help_flag' ] && '$CURRENT_DIR/.help' || '$CURRENT_DIR/.preview' {}")
   fzf_opts+=(--preview-window=right:50%:follow)
+  fzf_opts+=(--bind="?:transform([ -f '$_help_flag' ] && { rm -f '$_help_flag'; printf 'refresh-preview+change-preview-label( Preview )'; } || { touch '$_help_flag'; printf 'refresh-preview+change-preview-label( Help )'; })")
+else
+  fzf_opts+=(--preview="$CURRENT_DIR/.help")
+  fzf_opts+=(--preview-window=right:50%:hidden)
+  fzf_opts+=(--bind="?:toggle-preview+change-preview-label( Help )")
 fi
 
 # Progressive fzf features
