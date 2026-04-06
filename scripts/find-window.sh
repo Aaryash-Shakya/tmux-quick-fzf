@@ -116,7 +116,7 @@ fzf_opts+=(--delimiter=$'\t')
 fzf_opts+=(--with-nth=2..)
 fzf_opts+=(--print-query)
 fzf_opts+=(--expect=ctrl-w,ctrl-s)
-fzf_opts+=(--header="enter: switch | ctrl-w: new window | ctrl-s: new session | ctrl-t: theme | ?: help")
+fzf_opts+=(--header="?: toggle help")
 fzf_opts+=(--reverse)
 fzf_opts+=(--no-sort)
 
