@@ -8,6 +8,8 @@ current_theme=$(tmux show-option -gqv @quick_fzf_theme 2>/dev/null)
 current_theme="${current_theme:-mocha}"
 
 cat <<EOF
+Press ? or start typing to close
+
 tmux-quick-fzf
 
 Keybindings:
